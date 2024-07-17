@@ -55,9 +55,27 @@ SlackApp is a Node.js application integrated with Slack, designed to respond to 
     ```plaintext
     who took par?
     ```
+4. **Configure the Slack Command:**
+    - Go to the [Slack API: Apps](https://api.slack.com/apps) page and select your app.
+    - In your app settings, go to "Slash Commands."
+    - Click "Create New Command."
+      - Command: `/wtp`
+      - Request URL: `http://yourdomain.com/slack/events` (replace with your actual endpoint URL)
+      - Short Description: "Get PAR access details"
+      - Save the command.
 
-4. **Response:**
-    The bot will respond with the name, email, and time of the person who took PAR access.
+5. **Install the App to Your Workspace:**
+    - Go to "Install App" in the Slack app settings.
+    - Click "Install App to Workspace" and authorize the app.
+
+6. **Query PAR Access:**
+    In the Slack channel or direct message where the bot is present, type:
+    ```plaintext
+    /wtp
+    ```
+
+7. **Response:**
+    The bot will respond with the name, email, account, and time of the person who took PAR access.
 
 ## Contributing
 
@@ -72,4 +90,3 @@ We welcome contributions! Please follow these steps to contribute:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
