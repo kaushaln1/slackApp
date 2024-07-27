@@ -34,10 +34,8 @@ SlackApp is a Node.js application integrated with Slack, designed to respond to 
 3. **Set Up Environment Variables:**
     Create a `.env` file in the root directory and add the following variables:
     ```env
-    SLACK_BOT_TOKEN=your-slack-bot-token
-    SLACK_SIGNING_SECRET=your-slack-signing-secret
-    PAR_SERVER_URL=your-par-server-url
-    PAR_SERVER_API_KEY=your-par-server-api-key
+    SLACK_BOT_TOKEN=xxxx
+    PORT=3000
     ```
 
 ## Usage
