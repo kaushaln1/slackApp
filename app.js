@@ -28,6 +28,7 @@ app.get('/who-took-par', (req, res) => {
 // Endpoint to handle Slack slash command
 app.post('/slack/events', async (req, res) => {
     const { command, response_url, text, user_name } = req.body;
+    console.log(req.body)
 
     if (command.startsWith('/wtp_record')) {
         let accountType = 'aws'; // default account type
@@ -43,7 +44,7 @@ app.post('/slack/events', async (req, res) => {
 
         // Use user_name from Slack payload
         const name = user_name;
-        const email = 'john.doe@example.com'; // Example email
+        // const email = ; // Example email
         const time = new Date().toISOString(); // Current timestamp
 
         // Construct new record
