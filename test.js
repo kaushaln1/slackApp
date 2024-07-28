@@ -27,70 +27,67 @@ app.get('/who-took-par', (req, res) => {
 
 // Endpoint to handle Slack slash command
 app.post('/slack/events', async (req, res) => {
-    const { command, response_url, text } = req.body;
+    const { command, response_url, text, user_name } = req.body;
 
-    if (command === '/wtp') {
-        const parts = text.split(' ');
-        const action = parts[1];
+    if (command.startsWith('/wtp_record')) {
+        let accountType = 'aws'; // default account type
 
-        if (action === 'record') {
-            // Assuming command format: /wtp record <account>
-            const account = parts[2] || 'default'; // default if not provided
+        // Extract accountType from the command if provided
+        const commandParts = text.split(' ');
+        if (commandParts.length > 2) {
+            res.status(400).send('Bad Request: Too many parameters');
+            return;
+        } else if (commandParts.length === 2) {
+            accountType = commandParts[1];
+        }
 
-            // Extract user details from Slack request (for demonstration purpose)
-            const { user_id, user_name, user_email } = req.body;
+        // Use user_name from Slack payload
+        const name = user_name;
+        const email = 'john.doe@example.com'; // Example email
+        const time = new Date().toISOString(); // Current timestamp
 
-            // Confirm with the user (you may implement more sophisticated confirmation logic)
-            const confirmationMessage = `Are you sure you want to record your access with account ${account}?`;
+        // Construct new record
+        const newRecord = {
+            name,
+            email,
+            account: accountType,
+            time
+        };
 
-            // Example of asking for confirmation via Slack
+        // Append new record to data array
+        data.push(newRecord);
+
+        // Update data.json file with new data
+        fs.writeFile('data.json', JSON.stringify(data, null, 2), (err) => {
+            if (err) {
+                console.error('Error writing data to file:', err);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+            console.log('Data written to data.json');
+        });
+
+        // Respond with user's name
+        res.status(200).send(`Record added successfully for ${name}`);
+    } else if (command === '/wtp') {
+        try {
+            const response = await axios.get('http://localhost:3000/who-took-par');
+            const parData = response.data;
+
+            let message = "PAR Access Details:\n";
+            parData.forEach(person => {
+                message += `Name: ${person.name}\nEmail: ${person.email}\nAccount: ${person.account}\nTime: ${person.time}\n\n`;
+            });
+
             await axios.post(response_url, {
-                response_type: 'ephemeral', // only visible to the user
-                text: confirmationMessage,
-                attachments: [{
-                    text: 'Yes or No?',
-                    fallback: 'You are unable to confirm.',
-                    callback_id: 'confirm_record',
-                    actions: [
-                        { name: 'confirm', text: 'Yes', type: 'button', value: 'yes' },
-                        { name: 'confirm', text: 'No',  type: 'button', value: 'no' }
-                    ]
-                }]
+                response_type: 'in_channel',
+                text: message
             });
 
             res.status(200).send();
-        } else {
-            res.status(400).send('Bad Request');
-        }
-    } else if (command === '/confirm_record') {
-        // Handle confirmation from user (assuming it's a button interaction)
-        const { actions, user } = req.body;
-        const { value } = actions[0];
-
-        if (value === 'yes') {
-            // Assuming user_id, user_name, user_email are extracted from Slack payload
-            const newRecord = {
-                name: user_name,
-                email: user_email,
-                account: parts[2] || 'default', // default if not provided
-                time: new Date().toISOString() // current timestamp
-            };
-
-            // Add new record to data array
-            data.push(newRecord);
-
-            // Update data.json file
-            fs.writeFile('data.json', JSON.stringify(data, null, 2), err => {
-                if (err) {
-                    console.error('Error writing to data.json:', err);
-                    res.status(500).send('Internal Server Error');
-                    return;
-                }
-                console.log('Data updated successfully.');
-                res.status(200).send('Recorded successfully!');
-            });
-        } else {
-            res.status(200).send('Record canceled.');
+        } catch (error) {
+            console.error('Error fetching PAR data:', error);
+            res.status(500).send('Internal Server Error');
         }
     } else {
         res.status(400).send('Bad Request');

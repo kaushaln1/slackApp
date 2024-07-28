@@ -27,9 +27,49 @@ app.get('/who-took-par', (req, res) => {
 
 // Endpoint to handle Slack slash command
 app.post('/slack/events', async (req, res) => {
-    const { command, response_url } = req.body;
+    const { command, response_url, text, user_name } = req.body;
 
-    if (command === '/wtp') {
+    if (command.startsWith('/wtp_record')) {
+        let accountType = 'aws'; // default account type
+
+        // Extract accountType from the command if provided
+        const commandParts = text.split(' ');
+        if (commandParts.length > 2) {
+            res.status(400).send('Bad Request: Too many parameters');
+            return;
+        } else if (commandParts.length === 2) {
+            accountType = commandParts[1];
+        }
+
+        // Use user_name from Slack payload
+        const name = user_name;
+        const email = 'john.doe@example.com'; // Example email
+        const time = new Date().toISOString(); // Current timestamp
+
+        // Construct new record
+        const newRecord = {
+            name,
+            email,
+            account: accountType,
+            time
+        };
+
+        // Append new record to data array
+        data.push(newRecord);
+
+        // Update data.json file with new data
+        fs.writeFile('data.json', JSON.stringify(data, null, 2), (err) => {
+            if (err) {
+                console.error('Error writing data to file:', err);
+                res.status(500).send('Internal Server Error');
+                return;
+            }
+            console.log('Data written to data.json');
+        });
+
+        // Respond with user's name
+        res.status(200).send(`Record added successfully for ${name}`);
+    } else if (command === '/wtp') {
         try {
             const response = await axios.get('http://localhost:3000/who-took-par');
             const parData = response.data;
