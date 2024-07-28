@@ -27,13 +27,15 @@ app.get('/who-took-par', (req, res) => {
 
 // Endpoint to handle Slack slash command
 app.post('/slack/events', async (req, res) => {
-    const { command, response_url, text, user_name } = req.body;
+    const { command, response_url, text, user_name, email } = req.body;
+    console.log(`${req.body}`)
 
     if (command.startsWith('/wtp_record')) {
         let accountType = 'aws'; // default account type
 
         // Extract accountType from the command if provided
         const commandParts = text.split(' ');
+        console.log(`${commandParts}`)
         if (commandParts.length > 2) {
             res.status(400).send('Bad Request: Too many parameters');
             return;
@@ -43,7 +45,7 @@ app.post('/slack/events', async (req, res) => {
 
         // Use user_name from Slack payload
         const name = user_name;
-        const email = 'john.doe@example.com'; // Example email
+         const email = email; // Example email
         const time = new Date().toISOString(); // Current timestamp
 
         // Construct new record
